@@ -1,5 +1,4 @@
 import json
-import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
 # Charger les donnees a partir du fichier JSON
@@ -75,51 +74,3 @@ for date, increase in daily_increase_65_plus:
     # Ajout de la quantite ajoutee par jour pour la tranche d'age 65+
     if date in valeurs_par_tranche_age["65+"]:
         valeurs_combinees["65+"][date] = (sum(valeurs_par_tranche_age["65+"][date]), increase)
-
-""""
-# Affichage des valeurs combinees pour chaque tranche d'age
-print("Tranche d'age de 0 a 17 ans :")
-for date, (value, increase) in valeurs_combinees["0-17"].items():
-    print("     Date:", date)
-    print("     Valeur:", value)
-    print("     Quantite ajoutee:", increase)
-    print()
-
-print("Tranche d'age de 18 a 64 ans :")
-for date, (value, increase) in valeurs_combinees["18-64"].items():
-    print("     Date:", date)
-    print("     Valeur:", value)
-    print("     Quantite ajoutee:", increase)
-    print()
-
-
-print("Tranche d'age de 65 ans et plus :")
-for date, (value, increase) in valeurs_combinees["65+"].items():
-    print("     Date:", date)
-    print("     Valeur:", value)
-    print("     Quantite ajoutee:", increase)
-    print()
-"""
-""""
-# Dates pour l'axe des x
-dates = list(valeurs_combinees["0-17"].keys())
-
-dates = [mdates.datestr2num(date) for date in dates]
-
-# Tracer les graphiques
-plt.plot(dates, [valeurs_combinees["0-17"][date][0] for date in valeurs_combinees["0-17"].keys()], label="0-17 ans")
-plt.plot(dates, [valeurs_combinees["18-64"][date][0] for date in valeurs_combinees["18-64"].keys()], label="18-64 ans")
-plt.plot(dates, [valeurs_combinees["65+"][date][0] for date in valeurs_combinees["65+"].keys()], label="65+ ans")
-
-# Configurer le graphique
-plt.title("Hospitalisations entre le 19 mars 2020 et le 31 decembre 2020")
-plt.xlabel("Date")
-plt.xticks(rotation=45)
-plt.ylabel("Nombre d'hospitalisations")
-plt.legend()
-
-plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
-plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
-
-# Afficher le graphique
-plt.show()"""
