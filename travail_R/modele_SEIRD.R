@@ -1,3 +1,4 @@
+
 ## Importation des packages
 
 library(deSolve)
@@ -53,10 +54,10 @@ vp = eigen(contact_matrix/gamma)
 mean_vp = max(vp$values)
 
 # Taux de transmission (passage au compartiment E)
-beta1 = R_0[1]/mean_vp*c(1,1)      
-beta2 = R_0[2]/mean_vp*c(1,1)
-beta3 = R_0[3]/mean_vp*c(1,1)
-beta4 = R_0[4]/mean_vp*c(1,1)
+beta1 = R_0[1]/mean_vp*c(1)      
+beta2 = R_0[2]/mean_vp*c(1)
+beta3 = R_0[3]/mean_vp*c(1)
+beta4 = R_0[4]/mean_vp*c(1)
 
 # Taux d'infection (passage au compartiment I)
 i = c(0.01, 0.1, 0.5)
@@ -261,3 +262,68 @@ legend("topleft", legend = c("Donnees (65+ ans)", "Modele (65+ ans)"), col = c("
 ##########
 ## MCMC ##
 ##########
+
+
+theta_opt = log(c(CI[[4]],CI[[5]], CI[[6]], #E
+                  CI[[7]],CI[[8]], CI[[9]], #I
+                  CI[[10]],CI[[11]], CI[[12]], #R
+                  CI[[13]],CI[[14]], CI[[15]], #D
+                  param[[1]][1], param[[2]][1], param[[3]][1],param[[4]][1], #beta
+                  param[[5]][1], param[[5]][2], param[[5]][3], #i
+                  param[[6]][1], param[[6]][2], param[[6]][3], #r
+                  param[[7]][1], param[[7]][2], param[[7]][3])) #gamma)
+
+metro <- metrop(log_l, theta_opt, nbatch=1000, blen=10, scale=0.0005)
+metro$batch = exp(metro$batch)
+
+Seq=(1:nrow(metro$batch))
+Seq=Seq[seq(1, length(Seq), by = 100)] # prendre une courbe sur 100
+metro_select <- metro$batch[Seq, ]
+
+results = function(theta, sortie){
+  
+  CI = c(N[1]-theta[1]-theta[4]-theta[7]-theta[10],
+         N[2]-theta[2]-theta[5]-theta[8]-theta[11],
+         N[3]-theta[3]-theta[6]-theta[9]-theta[12],
+         theta[1],theta[2],theta[3],theta[4],theta[5], theta[6],
+         theta[7],theta[8],theta[9],theta[10],theta[11], theta[12])
+  
+  param = list(theta[13],theta[14],theta[15],theta[16],c(theta[17],theta[18], theta[19]),
+               c(theta[20],theta[21], theta[22]),c(theta[23],theta[24], theta[25]))
+  
+  X = ode(CI,t,SEIRD,param, method="bdf");
+  
+  lines(dates,X[,sortie], col = "green")
+  
+  return(X[,sortie])
+}
+
+MCMC1 <- c()
+MCMC2 <- c()
+MCMC3 <- c()
+
+par(mfrow = c(1,3))
+
+# MCMC pour les 0-19 ans
+
+plot(dates, d_0_19,xlab="Temps (mois)",ylab="décès totaux (0-19ans)",col="blue")
+
+for (i in 1:nrow(metro_select)) {MCMC1 <- cbind(MCMC1, results(metro_select[i, ], 14))}
+
+legend("topleft", legend = c("Donnees (0-19ans)", "Modele (0-19ans)"), col = c("blue", "green"), lty = c(0,1), lwd = c(1,2), pch = c(1,NA))
+
+# MCMC pour les 20-64 ans
+
+plot(dates, d_20_64,xlab="Temps (mois)", ylab="décès totaux (20-64ans)", type = "o",col="blue")
+
+for (i in 1:nrow(metro_select)) {MCMC2 <- cbind(MCMC2, results(metro_select[i, ], 15))}
+
+legend("topleft", legend = c("Donnees (20-64ans)", "Modele (20-64ans)"), col = c("blue", "green"), lty = c(0,1), lwd = c(1,2), pch = c(1,NA))
+
+# MCMC pour les 65+ ans
+
+plot(dates, d_65plus,xlab="Temps (mois)", ylab="décès totaux (65+ ans)", type = "o",col="blue")
+
+for (i in 1:nrow(metro_select)) {MCMC3 <- cbind(MCMC3, results(metro_select[i, ], 16))}
+
+legend("topleft", legend = c("Donnees (65+ ans)", "Modele (65+ ans)"), col = c("blue", "green"), lty = c(0,1), lwd = c(1,2), pch = c(1,NA))
